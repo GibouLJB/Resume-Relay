@@ -6,7 +6,7 @@ $zip = Join-Path $dist "codex-resume-$($manifest.version)-windows.zip"
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-$paths = @('README.md', 'Resume.cmd', '.agents/plugins/marketplace.json', 'examples/codex-resume.plan.json', 'plugins/codex-resume', 'docs/images')
+$paths = @('README.md', 'README.en.md', 'README.zh-TW.md', 'README.ja.md', 'Resume.cmd', '.agents/plugins/marketplace.json', 'examples/codex-resume.plan.json', 'plugins/codex-resume', 'docs/images')
 $temp = Join-Path $dist ('.' + [guid]::NewGuid().ToString() + '.zip')
 try {
     $archive = [IO.Compression.ZipFile]::Open($temp, [IO.Compression.ZipArchiveMode]::Create)

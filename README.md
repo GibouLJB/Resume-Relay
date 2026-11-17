@@ -1,5 +1,7 @@
 # 续程（Resume Relay）· Windows
 
+[简体中文](README.md) · [English](README.en.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md)
+
 A Windows plugin and background runner for Codex. It waits for usage limits to reset, resumes the original local session, and works through a task checklist. It runs tests after each task, logs progress, and stops when all tasks pass.
 
 把已有 Codex 本地会话和一份开发清单交给 Windows 续跑器。它使用同一 ChatGPT 登录查询 Codex 额度，等待服务端报告的重置时间，再恢复原会话。每项任务都要由 Codex 报告可验收，并由续跑器独立运行你确认的测试命令。全部通过后后台进程自动退出。
