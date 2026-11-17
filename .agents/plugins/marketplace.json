@@ -1,0 +1,12 @@
+{
+  "name": "codex-resume-tools",
+  "interface": { "displayName": "Resume Relay" },
+  "plugins": [
+    {
+      "name": "codex-resume",
+      "source": { "source": "local", "path": "./plugins/codex-resume" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    }
+  ]
+}

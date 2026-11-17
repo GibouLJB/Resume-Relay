@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "threadId": "00000000-0000-4000-8000-000000000000",
+  "tasks": [
+    {
+      "id": "validation",
+      "title": "统一配置校验",
+      "acceptance": "为缺失字段和无效取值提供可定位的错误；补充对应的回归测试。"
+    },
+    {
+      "id": "documentation",
+      "title": "更新配置说明",
+      "acceptance": "根据实现更新 README 的配置示例和默认值。"
+    }
+  ],
+  "test": ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", "npm.cmd test; exit $LASTEXITCODE"],
+  "maxAttempts": 4,
+  "turnTimeoutMinutes": 90,
+  "testTimeoutMinutes": 20
+}

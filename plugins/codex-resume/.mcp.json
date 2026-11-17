@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "codex-resume": {
+      "command": "node",
+      "args": ["${PLUGIN_ROOT}/runtime/mcp.mjs"],
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}
