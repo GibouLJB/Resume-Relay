@@ -129,7 +129,7 @@ async function runTest(api, project, plan, sandboxPolicy, signal) {
   }
 }
 
-export async function runProject(project, files, plan, executable, createServer = () => new AppServer(executable, project)) {
+export async function runProject(project, files, plan, executable, createServer = () => new AppServer(executable, project), options = {}) {
   mkdirSync(files.dir, { recursive: true });
   const controller = new AbortController();
   const { signal } = controller;
@@ -202,8 +202,31 @@ export async function runProject(project, files, plan, executable, createServer 
       index: 0, attempts: 0, quotaFallbacks: 0, stage: 'develop', feedback: '', waitUntil: null
     };
     state.token = token;
+    state.launchId = options.launchId;
+    state.handoffTurnId = options.sourceTurnId ?? state.handoffTurnId;
     if (state.phase === 'blocked' && state.attempts >= plan.maxAttempts) state.attempts = 0;
     save('queued', '已启动续跑。');
+    if (state.handoffTurnId) {
+      api = createServer();
+      await api.initialize();
+      save('handoff', '已安排续跑，等待原会话当前轮次结束。');
+      const deadline = Date.now() + plan.turnTimeoutMinutes * minute;
+      while (true) {
+        signal.throwIfAborted();
+        const result = await api.request('thread/turns/list', {
+          threadId: plan.threadId, limit: 1, sortDirection: 'desc'
+        });
+        const turn = result.data?.[0];
+        if (!turn) throw new Error('无法确认原会话的轮次状态。');
+        if (['completed', 'failed', 'interrupted'].includes(turn.status)) break;
+        if (Date.now() >= deadline) throw new Error('等待会话交接超时，请结束原会话当前轮次后恢复续跑。');
+        await pause(options.pollMs ?? 2000, undefined, { signal });
+      }
+      await api.close();
+      api = null;
+      state.handoffTurnId = null;
+      save('queued', '原会话已结束当前轮次，正在接管。');
+    }
     if (state.waitUntil) await waitUntil(state.waitUntil);
 
     const sandboxPolicy = {

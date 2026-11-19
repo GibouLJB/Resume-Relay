@@ -6,7 +6,30 @@ A Windows plugin and background runner for Codex. It waits for usage limits to r
 
 The runner uses your existing ChatGPT login to query Codex usage limits and waits until the reported reset time before checking again. Each task advances when Codex reports that its acceptance criteria are met and the runner independently executes your approved test command successfully.
 
-## Start here
+## Start from chat in 0.2.0
+
+[Download Windows 0.2.0](https://github.com/GibouLJB/Resume-Relay/raw/refs/heads/main/downloads/v0.2.0/codex-resume-0.2.0-windows.zip) · [SHA-256](downloads/v0.2.0/codex-resume-0.2.0-windows.zip.sha256)
+
+Update and reinstall the plugin. In the target project's local Codex chat, mention Resume Relay and ask it to prepare a plan, verify the test command, and start background development until the tasks are complete.
+
+Codex calls resume_start after preparing the plan. The handoff phase waits for the original turn to finish before resuming the same chat. Use another chat to check progress, stop, or resume. Initial plugin source registration is still required.
+
+New tools are resume_start and resume_stop, alongside resume_status. Permission, account, and interface errors return a reason. Handoff uses persisted turn status from local App Server. End-to-end handoff with a live desktop chat remains unverified.
+
+The illustrated guide below covers manual launcher operation. Its images show 0.1.0 with the same menu numbers.
+
+### Upgrade from 0.1.0
+
+Extract the new ZIP, stop the old worker, and register the source with option 8 in the new Resume.cmd. Restart Codex and update or reinstall the plugin. Confirm that resume_start, resume_stop, and resume_status are available.
+
+### Chat workflow
+
+1. Mention Resume Relay in the original local project chat and request automatic development.
+2. Codex prepares the plan, verifies the test command, and calls resume_start.
+3. Codex ends its turn. The worker checks turn status before taking over. handoff means waiting, and developing means work is in progress.
+4. Use another chat to check, stop, or resume. Stop and archive old progress before changing a started plan.
+
+## Manual launcher tutorial
 
 You need the [Codex Windows app](https://learn.chatgpt.com/docs/windows/windows-app) signed in with ChatGPT, [Node.js 22 or later](https://nodejs.org/), and a project you can develop locally. Follow the tutorial once, then use option 3 to resume, 4 to check progress, and 5 to stop.
 
@@ -14,7 +37,7 @@ This tutorial uses a fictional to-do website called `todo-web`. Replace its path
 
 ### 1. Download the runner and register the plugin
 
-Download `codex-resume-0.1.0-windows.zip` from **Assets** on [GitHub Releases](https://github.com/GibouLJB/Resume-Relay/releases/latest). Extract it to a folder you will keep, such as `C:\Tools\Resume-Relay`, and double-click `Resume.cmd` inside that folder.
+Download `codex-resume-0.2.0-windows.zip` from the download directory on [GitHub Releases](https://github.com/GibouLJB/Resume-Relay/tree/main/downloads/v0.2.0). Extract it to a folder you will keep, such as `C:\Tools\Resume-Relay`, and double-click `Resume.cmd` inside that folder.
 
 ![Launcher menu with English explanations of registration, plan creation, account checks, and starting the runner](docs/images/en/launcher-guide.png)
 

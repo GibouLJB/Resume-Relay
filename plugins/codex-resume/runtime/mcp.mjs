@@ -1,7 +1,10 @@
 import { createInterface } from 'node:readline';
 import path from 'node:path';
 import { contact } from './control.mjs';
-import { locations, projectPath, publicStatus, readJson } from './storage.mjs';
+import { locations, projectPath, publicStatus, readJson, readPlan, projectKey } from './storage.mjs';
+import { executable } from './executable.mjs';
+import { AppServer } from './app-server.mjs';
+import { startBackground } from './background.mjs';
 
 const statusTool = {
   name: 'resume_status',
@@ -15,6 +18,12 @@ const statusTool = {
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false }
 };
 
+const startTool = { ...statusTool, name: 'resume_start',
+  description: '启动或恢复项目清单，等待原会话轮次结束后接管。用户要求自动续跑时使用。',
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true } };
+const stopTool = { ...statusTool, name: 'resume_stop',
+  description: '停止项目后台续跑，包括等待会话交接或额度的进程。',
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } };
 const lines = createInterface({ input: process.stdin, crlfDelay: Infinity });
 for await (const line of lines) {
   let request;
@@ -31,7 +40,7 @@ for await (const line of lines) {
       send({ id, result: {
         protocolVersion: versions.includes(params?.protocolVersion) ? params.protocolVersion : versions.at(-1),
         capabilities: { tools: {} },
-        serverInfo: { name: 'codex-resume', version: '0.1.0' }
+        serverInfo: { name: 'codex-resume', version: '0.2.0' }
       } });
       break;
     }
@@ -39,14 +48,45 @@ for await (const line of lines) {
       send({ id, result: {} });
       break;
     case 'tools/list':
-      send({ id, result: { tools: [statusTool] } });
+      send({ id, result: { tools: [statusTool, startTool, stopTool] } });
       break;
     case 'tools/call':
       try {
-        if (params?.name !== statusTool.name) throw new Error('未知工具。');
+        if (![statusTool.name, startTool.name, stopTool.name].includes(params?.name)) throw new Error('未知工具。');
         const input = params.arguments?.project;
         if (typeof input !== 'string' || !path.isAbsolute(input)) throw new Error('请提供项目文件夹绝对路径。');
-        const files = locations(projectPath(input));
+        const project = projectPath(input);
+        const files = locations(project);
+        if (params.name === startTool.name) {
+          const plan = readPlan(project);
+          if (await contact(files)) {
+            const status = publicStatus(readJson(files.state, true), files, true);
+            send({ id, result: { content: [{ type: 'text', text: JSON.stringify(status) }] } });
+            break;
+          }
+          const codex = executable();
+          const api = new AppServer(codex, project);
+          let sourceTurnId;
+          try {
+            await api.initialize();
+            const { thread } = await api.request('thread/read', { threadId: plan.threadId });
+            if (!thread || thread.ephemeral || projectKey(projectPath(thread.cwd)) !== projectKey(project)) {
+              throw new Error('计划中的会话必须属于此本地项目。');
+            }
+            const turns = await api.request('thread/turns/list', { threadId: plan.threadId, limit: 1, sortDirection: 'desc' });
+            if (!turns.data?.[0]?.id) throw new Error('无法获取原会话当前轮次。请确认本地会话已有消息。');
+            sourceTurnId = turns.data[0].id;
+          } finally { await api.close(); }
+          const status = await startBackground(project, files, plan, codex, sourceTurnId);
+          send({ id, result: { content: [{ type: 'text', text: JSON.stringify(status) }] } });
+          break;
+        }
+        if (params.name === stopTool.name) {
+          const state = readJson(files.state, true);
+          const requested = state?.token ? await contact(files, `stop ${state.token}`) : false;
+          send({ id, result: { content: [{ type: 'text', text: JSON.stringify({ stopRequested: requested, ...publicStatus(state, files, await contact(files)) }) }] } });
+          break;
+        }
         const status = publicStatus(readJson(files.state, true), files, await contact(files));
         send({ id, result: { content: [{ type: 'text', text: JSON.stringify(status) }] } });
       } catch (error) {

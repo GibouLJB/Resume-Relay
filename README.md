@@ -6,7 +6,30 @@ A Windows plugin and background runner for Codex. It waits for usage limits to r
 
 把已有 Codex 本地会话和一份开发清单交给 Windows 续跑器。它使用同一 ChatGPT 登录查询 Codex 额度，等待服务端报告的重置时间，再恢复原会话。每项任务都要由 Codex 报告可验收，并由续跑器独立运行你确认的测试命令。全部通过后后台进程自动退出。
 
-## 从这里开始
+## 0.2.0 在聊天中直接启动
+
+[下载 Windows 0.2.0](https://github.com/GibouLJB/Resume-Relay/raw/refs/heads/main/downloads/v0.2.0/codex-resume-0.2.0-windows.zip) · [SHA-256 校验文件](downloads/v0.2.0/codex-resume-0.2.0-windows.zip.sha256)
+
+更新并重新安装插件后，在目标项目的本地 Codex 会话中 @ 续程，并告诉它“请根据当前项目进度生成任务清单，验证测试命令，然后直接启动后台续跑，直到任务完成”。
+
+Codex 会读取路径和会话 ID，填写清单并调用 resume_start。handoff 表示后台正在等待原会话当前轮次结束，之后再接管同一会话。在另一条聊天中可要求插件查看进度、停止或恢复。首次安装仍需完成插件来源注册。
+
+新增 resume_start 和 resume_stop，保留 resume_status。权限、账号或接口错误会返回具体原因。交接使用本地 App Server 的持久化轮次状态确认，真实桌面会话的端到端交接仍待验证。
+
+下方图文教程为启动器的手动操作方式。配图为 0.1.0，菜单编号一致。
+
+### 从 0.1.0 升级
+
+下载新版 ZIP 并解压。停止旧版续跑，使用新版 Resume.cmd 菜单 8 注册来源，重启 Codex，再更新或重新安装续程。确认可用工具包含 resume_start、resume_stop、resume_status。
+
+### 聊天内操作顺序
+
+1. 在项目原会话中 @ 续程，说明目标并要求自动续跑。
+2. Codex 生成清单、验证测试命令并调用 resume_start。
+3. Codex 结束当前轮次，后台确认轮次状态后接管。handoff 表示等待交接，developing 表示正在开发。
+4. 在另一条聊天中要求查看进度、停止或恢复。更改已启动计划前先停止并归档旧进度。
+
+## 启动器手动操作教程
 
 准备好已登录 ChatGPT 的 [Codex Windows 客户端](https://learn.chatgpt.com/docs/windows/windows-app)、[Node.js 22 或更新版本](https://nodejs.org/)，以及一个能在本机继续开发的项目。首次使用按下面的案例走一遍，之后用菜单 3 恢复、菜单 4 查看进度、菜单 5 停止即可。
 
@@ -14,7 +37,7 @@ A Windows plugin and background runner for Codex. It waits for usage limits to r
 
 ### 1. 下载工具并注册插件
 
-从 [GitHub Releases](https://github.com/GibouLJB/Resume-Relay/releases/latest) 的 **Assets** 下载 `codex-resume-0.1.0-windows.zip`，解压到准备长期保留的文件夹，例如 `C:\Tools\Resume-Relay`。在解压后的文件夹里双击 `Resume.cmd`。
+从 [GitHub Releases](https://github.com/GibouLJB/Resume-Relay/tree/main/downloads/v0.2.0) 的下载目录下载 `codex-resume-0.2.0-windows.zip`，解压到准备长期保留的文件夹，例如 `C:\Tools\Resume-Relay`。在解压后的文件夹里双击 `Resume.cmd`。
 
 ![启动器菜单，标出注册插件、创建清单、检查账号和启动续跑的选项](docs/images/launcher-guide.png)
 

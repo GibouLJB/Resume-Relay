@@ -6,7 +6,30 @@ Codex のローカル開発を継続する Windows 用プラグインとバッ�
 
 既存の ChatGPT ログインで Codex の利用枠を確認し、サーバーが返したリセット時刻に基づいて待機・再確認します。各タスクは、Codex が完了条件を満たしたと判断し、さらにツールが承認済みのテストコマンドを実行して成功した後に次へ進みます。
 
-## はじめに
+## 0.2.0 では会話から直接開始
+
+[Windows 0.2.0 をダウンロード](https://github.com/GibouLJB/Resume-Relay/raw/refs/heads/main/downloads/v0.2.0/codex-resume-0.2.0-windows.zip) · [SHA-256](downloads/v0.2.0/codex-resume-0.2.0-windows.zip.sha256)
+
+更新・再インストール後、対象プロジェクトのローカル Codex 会話で Resume Relay を指定し、計画作成、テストコマンドの検証、完了までのバックグラウンド実行を依頼してください。
+
+Codex が resume_start を呼び出します。handoff は元の会話の現在のターンの終了待ちで、その後に同じ会話を再開します。別の会話から進捗確認、停止、再開ができます。初回の配布元登録は必要です。
+
+resume_start と resume_stop を追加し、resume_status も使用できます。権限やアカウント、インターフェースの問題は理由を返します。引き継ぎはローカル App Server が保存したターン状態で確認します。実際のデスクトップ会話での一連の引き継ぎは未検証です。
+
+以下の図解は手動操作の説明です。図は 0.1.0 のもので、メニュー番号は共通です。
+
+### 0.1.0 から更新する
+
+新版 ZIP を展開し、旧版の処理を停止します。新しい Resume.cmd のメニュー 8 で配布元を登録し、Codex を再起動してプラグインを更新または再インストールします。resume_start、resume_stop、resume_status が使えることを確認してください。
+
+### 会話から実行する手順
+
+1. 元のローカル会話で Resume Relay を指定し、目標と自動実行の希望を伝えます。
+2. Codex が計画を記入し、テストコマンドを検証して resume_start を呼び出します。
+3. Codex がターンを終了すると、処理が状態を確認して引き継ぎます。handoff は待機中、developing は開発中です。
+4. 別の会話から確認、停止、再開を依頼します。計画の変更前に停止し、以前の進捗を保存してください。
+
+## ランチャーの手動操作ガイド
 
 ChatGPT でログイン済みの [Codex Windows アプリ](https://learn.chatgpt.com/docs/windows/windows-app)、[Node.js 22 以降](https://nodejs.org/)、ローカルで開発できるプロジェクトを用意してください。初回は以下の手順に沿って設定します。次回からは、メニュー 3 で再開、4 で進捗確認、5 で停止できます。
 
@@ -14,7 +37,7 @@ ChatGPT でログイン済みの [Codex Windows アプリ](https://learn.chatgpt
 
 ### 1. ダウンロードしてプラグインの配布元を登録する
 
-[GitHub Releases](https://github.com/GibouLJB/Resume-Relay/releases/latest) の **Assets** から `codex-resume-0.1.0-windows.zip` をダウンロードします。`C:\Tools\Resume-Relay` など、継続して使用するフォルダーに展開し、その中の `Resume.cmd` をダブルクリックしてください。
+[GitHub Releases](https://github.com/GibouLJB/Resume-Relay/tree/main/downloads/v0.2.0) のダウンロードフォルダーから `codex-resume-0.2.0-windows.zip` をダウンロードします。`C:\Tools\Resume-Relay` など、継続して使用するフォルダーに展開し、その中の `Resume.cmd` をダブルクリックしてください。
 
 ![配布元登録、タスク一覧の作成、アカウント確認、実行開始を説明する日本語のメニュー図](docs/images/ja/launcher-guide.png)
 

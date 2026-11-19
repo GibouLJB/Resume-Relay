@@ -80,7 +80,7 @@ export function publicStatus(state, files, running) {
   const { project, threadId, index, total, task, phase, note, updatedAt, waitUntil } = state;
   return {
     project, threadId, verified: index, total, task,
-    phase: !running && ['queued', 'developing', 'testing', 'waiting'].includes(phase) ? 'interrupted' : phase,
+    phase: !running && ['queued', 'handoff', 'developing', 'testing', 'waiting'].includes(phase) ? 'interrupted' : phase,
     running, note, updatedAt, nextCheck: waitUntil ? new Date(waitUntil).toISOString() : null, log: files.log
   };
 }

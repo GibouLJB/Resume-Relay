@@ -1,6 +1,6 @@
 {
   "name": "codex-resume",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Windows 上跨 Codex 额度周期续跑本地开发任务，按清单验证并记录进度。",
   "requires_local_executor": true,
   "skills": "./skills/",

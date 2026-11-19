@@ -76,6 +76,45 @@ class FakeAppServer extends EventEmitter {
   }
 }
 
+test('chat handoff waits for an active turn and starts only after completion', async t => {
+  const { project, files, plan } = fixture(t);
+  const api = new FakeAppServer(project);
+  const request = api.request.bind(api);
+  let checks = 0;
+  api.request = async (method, params) => {
+    if (method === 'thread/turns/list') {
+      assert.equal(api.calls.some(call => call.method === 'turn/start'), false);
+      return { data: [{ id: 'source', status: ++checks < 3 ? 'inProgress' : 'completed' }] };
+    }
+    return request(method, params);
+  };
+  await runProject(project, files, plan, null, () => api, { sourceTurnId: 'source', pollMs: 1 });
+  assert.equal(checks, 3);
+  assert.equal(readJson(files.state).phase, 'complete');
+  assert.equal(readJson(files.state).handoffTurnId, null);
+});
+
+test('handoff can be stopped before any development starts', async t => {
+  const { project, files, plan } = fixture(t);
+  const api = new FakeAppServer(project);
+  api.request = async method => {
+    assert.equal(method, 'thread/turns/list');
+    return { data: [{ id: 'source', status: 'inProgress' }] };
+  };
+  const running = runProject(project, files, plan, null, () => api, { sourceTurnId: 'source', pollMs: 5 });
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const state = readJson(files.state, true);
+    if (state?.phase === 'handoff') {
+      assert.equal(await contact(files, `stop ${state.token}`), true);
+      break;
+    }
+    await pause(5);
+  }
+  await running;
+  assert.equal(readJson(files.state).phase, 'stopped');
+  assert.equal(readJson(files.state).index, 0);
+});
+
 test('quota delay follows both exhausted windows and handles unknown timestamps', () => {
   const now = 1_000_000_000;
   const windows = { rateLimits: {

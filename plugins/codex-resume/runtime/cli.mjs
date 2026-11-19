@@ -1,3 +1,4 @@
+import { executable } from './executable.mjs';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { closeSync, existsSync, mkdirSync, openSync, renameSync, writeFileSync } from 'node:fs';
@@ -22,30 +23,6 @@ const menu = [
   ['run', '在当前窗口启动续跑']
 ];
 
-function executable() {
-  const override = process.env.CODEX_RESUME_EXE;
-  if (override) {
-    if (!path.isAbsolute(override) || !override.toLowerCase().endsWith('.exe') || !existsSync(override)) {
-      throw new Error('CODEX_RESUME_EXE 必须指向有效的 Codex .exe 绝对路径。');
-    }
-    return override;
-  }
-  const candidates = (process.env.PATH ?? '').split(path.delimiter)
-    .map(directory => directory.replace(/^"(.*)"$/, '$1'))
-    .filter(directory => path.isAbsolute(directory))
-    .map(directory => path.join(directory, 'codex.exe'));
-  const available = candidates.find(candidate => existsSync(candidate) &&
-    spawnSync(candidate, ['--version'], { windowsHide: true, timeout: 10_000 }).status === 0);
-  if (available) return available;
-  const powershell = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
-  const discovery = spawnSync(powershell, ['-NoProfile', '-NonInteractive', '-Command',
-    '[Console]::OutputEncoding = [Text.Encoding]::UTF8; ' +
-    'Get-AppxPackage -Name OpenAI.Codex | ForEach-Object { Join-Path $_.InstallLocation "app/resources/codex.exe" }'
-  ], { windowsHide: true, timeout: 15_000, encoding: 'utf8' });
-  const installed = discovery.stdout?.trim().split(/\r?\n/).find(candidate => existsSync(candidate));
-  if (!installed) throw new Error('找不到 Codex CLI。请安装 Codex 桌面客户端，或将 CODEX_RESUME_EXE 指向 codex.exe。');
-  return installed;
-}
 
 async function withServer(project, action) {
   const api = new AppServer(executable(), project);
@@ -191,14 +168,14 @@ async function main() {
     const project = projectPath(input);
     const plan = readPlan(project);
     if (fingerprint(plan) !== expectedHash) throw new Error('清单在后台启动前发生变化，请重新审核。');
-    await runProject(project, locations(project), plan, codex);
+    await runProject(project, locations(project), plan, codex, undefined, process.argv[6] ? JSON.parse(process.argv[6]) : {});
     return;
   }
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   try {
     let [command, input] = process.argv.slice(2);
     if (!command) {
-      console.log('续程 · Resume Relay 0.1.0');
+      console.log('续程 · Resume Relay 0.2.0');
       menu.forEach(([, label], index) => console.log(`${index + 1}. ${label}`));
       const choice = await rl.question('请选择： ');
       command = menu[Number(choice) - 1]?.[0];

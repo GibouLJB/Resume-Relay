@@ -81,7 +81,7 @@ export class AppServer extends EventEmitter {
 
   async initialize() {
     await this.request('initialize', {
-      clientInfo: { name: 'codex_resume', title: 'Codex Resume', version: '0.1.0' }
+      clientInfo: { name: 'codex_resume', title: 'Codex Resume', version: '0.2.0' }
     });
     this.send({ method: 'initialized' });
   }

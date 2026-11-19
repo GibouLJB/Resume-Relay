@@ -6,7 +6,30 @@
 
 工具使用既有的 ChatGPT 登入狀態查詢 Codex 額度，依照服務端回傳的重設時間等待並再次檢查。每項工作都要由 Codex 判斷符合驗收條件，再由工具獨立執行你確認的測試指令，測試通過後才會推進。
 
-## 從這裡開始
+## 0.2.0 從聊天直接啟動
+
+[下載 Windows 0.2.0](https://github.com/GibouLJB/Resume-Relay/raw/refs/heads/main/downloads/v0.2.0/codex-resume-0.2.0-windows.zip) · [SHA-256](downloads/v0.2.0/codex-resume-0.2.0-windows.zip.sha256)
+
+更新並重新安裝外掛後，在目標專案的本機 Codex 對話中 @ 續程，請它根據目前進度建立清單、驗證測試指令，再直接啟動背景續跑直到完成。
+
+Codex 會呼叫 resume_start。handoff 表示等待原對話目前回合結束，再接手同一對話。可在另一則聊天中查詢進度、停止或恢復。首次使用仍需註冊來源。
+
+新增 resume_start 與 resume_stop，保留 resume_status。權限、帳號或介面錯誤會回報原因。交接使用本機 App Server 儲存的回合狀態，真實桌面對話的端到端交接仍待驗證。
+
+以下圖文教學說明手動操作方式。配圖為 0.1.0，選單編號相同。
+
+### 從 0.1.0 升級
+
+解壓縮新版 ZIP，停止舊版程序，使用新版 Resume.cmd 選項 8 註冊來源。重新啟動 Codex 並更新或重新安裝外掛，確認 resume_start、resume_stop、resume_status 可用。
+
+### 聊天操作流程
+
+1. 在原本機專案對話中 @ 續程，說明目標並要求自動續跑。
+2. Codex 填寫清單、驗證測試指令並呼叫 resume_start。
+3. Codex 結束目前回合，背景程序確認狀態後接手。handoff 為等待交接，developing 為開發中。
+4. 透過另一則聊天查詢、停止或恢復。修改已啟動計畫前，先停止並封存舊進度。
+
+## 啟動工具手動操作教學
 
 先準備已登入 ChatGPT 的 [Codex Windows 用戶端](https://learn.chatgpt.com/docs/windows/windows-app)、[Node.js 22 或更新版本](https://nodejs.org/)，以及可以在本機繼續開發的專案。首次使用請依照下方案例操作，之後用選項 3 恢復、4 查看進度、5 停止。
 
@@ -14,7 +37,7 @@
 
 ### 1. 下載工具並註冊外掛來源
 
-從 [GitHub Releases](https://github.com/GibouLJB/Resume-Relay/releases/latest) 的 **Assets** 下載 `codex-resume-0.1.0-windows.zip`，解壓縮至準備長期保留的資料夾，例如 `C:\Tools\Resume-Relay`。在解壓縮後的資料夾內，按兩下 `Resume.cmd`。
+從 [GitHub Releases](https://github.com/GibouLJB/Resume-Relay/tree/main/downloads/v0.2.0) 的 **Assets** 下載 `codex-resume-0.2.0-windows.zip`，解壓縮至準備長期保留的資料夾，例如 `C:\Tools\Resume-Relay`。在解壓縮後的資料夾內，按兩下 `Resume.cmd`。
 
 ![啟動選單與註冊外掛、建立清單、檢查帳號及啟動續跑的繁體中文說明](docs/images/zh-TW/launcher-guide.png)
 
